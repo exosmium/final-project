@@ -1,71 +1,164 @@
 from telethon import TelegramClient, events, Button
-from currency_converter import CurrencyConverter
 import requests
+from datetime import datetime
+import os
+import json
 
-converter_instance = CurrencyConverter()
+welcome = """
+⚙️ Howdy. I am the best currency converter in the whole galaxy. I can:
+
+- Show currency rates to EUR (Button "Rates")
+
+- Convert currencies (Button "Convert")
+
+- Conversion history (Button "History")
+
+My capabilities reminder: /help
+"""
+reminder = "🔧 Remind my capabilities: /help"
+currency_from = "💱 Choose currency to convert to."
+currency_to = "💱 Choose currency to convert from."
+chosen_currency_from = ""
+chosen_currency_to = ""
+enter_value = "💲 Enter amount to convert."
+value = 0
+rate_header = "📌 Current exchange rates: \n\n"
+rate_format = "1 {} = {} EUR\n"
+history_header = "🔍 History of {}: \n\n"
+history_format = "{} {} => {} {}\n"
+history_empty = "❌ Your history is empty!"
+result_message = "💵 {} {} is {} {}"
+same_currency = "❗️ You cannot choose same currency twice!"
+
+class MenuButton:
+    rates = "📊 Rates"
+    convert = "💳 Convert"
+    history = "📎 History"
+
 api_id = 0
 api_hash = ""
 token = ""
 
-currenices = ["EUR", "USD","JPY","BGN","CYP","CZK","DKK","EEK","GBP","HUF","LTL","LVL","MTL","PLN","ROL","RON","SEK","SIT","SKK","CHF","ISK","NOK","HRK","RUB","TRL","TRY","AUD","BRL","CAD","CNY","HKD","IDR","ILS","INR","KRW","MXN","MYR","NZD","PHP","SGD","THB","ZAR"]
-
-welcome = """
-Howdy. I am the best currency converter in the whole galaxy. I can:
-
-- Show all currencies corresponding to EUR. (Button "Currrencies")
-
-- Convert currencies (Button "Convert")
-
-My capabilities reminder: /help
-"""
-reminder = "Remind my capabilities: /help"
-currency_from = "Choose currency to convert to."
-currency_to = "Choose currency to convert from."
-chosen_currency_from = ""
-chosen_currency_to = ""
-enter_value = "Enter amount to convert."
-value = 0
-
-bot = TelegramClient('xlconvertbot', api_id, api_hash).start(bot_token=token)
-currency_buttons = []
-currency_buttons.append([])
-
-main_buttons = [[Button.text("Currencies")], [Button.text("Convert")]]
-for button in main_buttons:
-    button[0].resize = True
-row = 0
-
+userdata = {}
 def byte_to_string(data):
     data = str(data)
     return data.replace("'", "").replace("b", "")
 
+def convert_currency(amount, currency_from, currency_to):
+    request = ("https://www.frankfurter.app/latest?amount={}&from={}&to={}").format(amount, currency_from, currency_to)
+    response = requests.get(request)
+    return response.json()["rates"].get(currency_to)
+
+def get_current_rates():
+    request = "https://api.frankfurter.app/latest"
+    response = requests.get(request)
+    return response.json()["rates"]
+
+def get_currencies():
+    request = "https://api.frankfurter.app/latest"
+    response = requests.get(request)
+    return list(response.json()["rates"].keys())
+
+def add_conversion(username, currency_from, currency_to, amount, result):
+    timestamp = datetime.timestamp(datetime.now())
+    conversion_data = {}
+    conversion_data["from"] = currency_from
+    conversion_data["to"] = currency_to
+    conversion_data["amount"] = str(amount)
+    conversion_data["result"] = str(result)
+    
+    conversions = {}
+    if (username in list(userdata.keys())):
+        conversions = userdata.get(username)["conversions"]
+    conversions[str(timestamp)] = conversion_data
+    conversions_interface = {}
+    conversions_interface["conversions"] = conversions
+    userdata[username] = conversions_interface
+
+def load_userdata():
+    if (os.path.isfile("userdata.json")):
+        with open("userdata.json", 'r') as json_file:
+            global userdata
+            userdata = dict(json.load(json_file))
+
+def save_userdata():
+    with open("userdata.json", 'w') as json_file:
+        json.dump(userdata, json_file, indent=2, separators=(',',': '))
+
+def get_history(username):
+    if (userdata.get(username) == None):
+        return history_empty
+    result = ""
+    result += history_header.format(username)
+    conversions = userdata.get(username)["conversions"]
+    for conversion_timestamp in conversions.keys():
+        current_conversion = conversions.get(conversion_timestamp)
+        result += history_format.format(current_conversion.get("amount"), current_conversion.get("from"), current_conversion.get("result"), current_conversion.get("to"))
+    return result
+
+load_userdata()
+currenices = get_currencies()
+currenices.append("EUR")
+
+bot = TelegramClient('xlconvertbot', api_id, api_hash).start(bot_token=token)
+currency_buttons = []
+currency_buttons.append([])
+main_buttons = [[Button.text(MenuButton.rates)], [Button.text(MenuButton.convert)],  [Button.text(MenuButton.history)]]
+for button in main_buttons:
+    button[0].resize = True
+row = 0
 status = 0
-for currency_id in range(len(currenices) - 1):
+for currency_id in range(len(currenices)):
     if (currency_id % 6 == 0):
         currency_buttons.append([])
         row +=1
     
     currency_buttons[row].append(Button.inline(currenices[currency_id], currenices[currency_id]))
-    
 
 @bot.on(events.NewMessage)
 async def echo(event):
-    global status, chosen_currency_from, chosen_currency_to
+    sender = await event.get_sender()
+    global status, chosen_currency_from, chosen_currency_to, button_convert_name, button_rates_name, button_history_name
+
+    if status == 3:
+        value = event.text
+        status = 0
+        if (chosen_currency_from == chosen_currency_to):
+            await event.respond(same_currency)
+            return
+        result = convert_currency(int(value), chosen_currency_from, chosen_currency_to)
+        response = result_message.format(value, chosen_currency_from, str(result), chosen_currency_to)
+        add_conversion(sender.username, chosen_currency_from, chosen_currency_from, int(value), result)
+        save_userdata()
+        await event.respond(response)
+        return
+    
     match event.text:
         case "/start":
             await event.respond(welcome, buttons=main_buttons)
-        case "Convert":
+            return
+        case "/help":
+            await event.respond(welcome, buttons=main_buttons)
+            return
+        case MenuButton.convert:
             status = 1
             await event.respond(currency_from, buttons=currency_buttons)
-        case "Currencies":
-            pass
-    if status == 3:
-        value = event.text
-        print(chosen_currency_from, chosen_currency_to)
-        result = converter_instance.convert(int(value), chosen_currency_from, chosen_currency_to)
-        result_message = value + chosen_currency_from + " is " + str(result) + chosen_currency_to
-        status = 0
-        await event.respond(result_message)
+            return
+        case MenuButton.rates:
+            response = ""
+            response += rate_header
+            current_rates = get_current_rates()
+            for rate_name in current_rates.keys():
+                response += rate_format.format(rate_name, current_rates.get(rate_name))
+            await event.respond(response)
+            return
+            
+        case MenuButton.history:
+            await event.respond(get_history(sender.username))
+            return
+        case _:
+            await event.respond(reminder)
+            return
 
 @bot.on(events.CallbackQuery)
 async def echo(event):
@@ -83,26 +176,8 @@ async def echo(event):
             await event.respond(enter_value)
 
 
-
-
 def main():
     bot.run_until_disconnected()
 
 if __name__ == '__main__':
     main()
-
-
-
-"""
-
-
-
-to_convert = int(input("Введите сумму конвертации: "))
-
-print("Доступные валюты:")
-for currency in currenices:
-    print(currency, end=" ")
-
-
-#print()
-"""
