@@ -101,6 +101,7 @@ currenices = get_currencies()
 currenices.append("EUR")
 
 bot = TelegramClient('xlconvertbot', api_id, api_hash).start(bot_token=token)
+
 currency_buttons = []
 currency_buttons.append([])
 main_buttons = [[Button.text(MenuButton.rates)], [Button.text(MenuButton.convert)],  [Button.text(MenuButton.history)]]
@@ -112,13 +113,12 @@ for currency_id in range(len(currenices)):
     if (currency_id % 6 == 0):
         currency_buttons.append([])
         row +=1
-    
     currency_buttons[row].append(Button.inline(currenices[currency_id], currenices[currency_id]))
 
 @bot.on(events.NewMessage)
 async def echo(event):
     sender = await event.get_sender()
-    global status, chosen_currency_from, chosen_currency_to, button_convert_name, button_rates_name, button_history_name
+    global status, chosen_currency_from, chosen_currency_to
 
     if status == 3:
         value = event.text
