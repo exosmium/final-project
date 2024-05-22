@@ -1,14 +1,14 @@
-# Analīze!
+# Analīze
 
 Lai aprēķinātu valūtas maiņas kursu, parasti ir jāveic trīs darbības: dodieties uz pārlūkprogrammu, 
 ierakstiet konvertēšanas valūtas un simbolus un apstipriniet meklēšanu. Bet ko darīt, ja cilvēks nav tik pārliecināts 
 par valūtas simboliem vai nezina, kā uzrakstīt tās nosaukumu?
 
-# Specifikacija!
+# Specifikacija
 
 Programmai jābūt telegrammas botam ar 3 pogām: konvertēšana, maiņas kursi un vēsture. Jāizmanto telethon bibliotēka (lai izveidotu robotu) un api.frankfurter.app API (lai iegūtu aktuālo informāciju par valūtas kursiem). Pirmajā palaišanas reizē (komanda /start) programmai jānosūta lietotājam apsveikuma ziņojums, kurā tiks stāstīts par bota funkcijām un pieejamajām komandām. Jābūt arī komandai /help, lai gadījumā, ja lietotājs var atcerēties, kādas komandas botam ir, atkal saņemot apsveikuma ziņojumu. Tagad atsevišķi par katru funkciju.
 
-# Iterācijas!
+# Iterācijas
 
 1. Frankfurt API
 2. JSON data formati/glābšana
