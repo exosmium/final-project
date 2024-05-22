@@ -37,7 +37,7 @@ Datu glabāšanai jāizmanto JSON fails. Visiem ziņojumiem jābūt rakstītiem 
 1. Frankfurt API
 2. JSON data formati/glābšana
 3. Bota UI konstruēšana
-4. Ziņas formata dizains ar
+4. Ziņas formata dizains ar Emoji
 
 
 # Izmantoti resursi!
