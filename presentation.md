@@ -40,10 +40,16 @@ Datu glabāšanai jāizmanto JSON fails. Visiem ziņojumiem jābūt rakstītiem 
 4. Ziņas formata dizains ar Emoji
 
 
-# Izmantoti resursi!
+# Izmantoti resursi
 
 - [Frankfurt API](https://api.frankfurter.app/)
 - [Python JSON](https://www.w3schools.com/python/python_json.asp)
 - [Telethon Documentation](https://docs.telethon.dev/en/stable/)
 - [Python Requests Module](https://www.w3schools.com/python/module_requests.asp)
 - [Get Emoji](https://getemoji.com/)
+
+# Demonstrācija
+
+![screenshot_3](https://github.com/exosmium/final-project/assets/59437511/a4fcedb3-cca3-41b3-96dd-68b116b6081b)
+![screenshot_1](https://github.com/exosmium/final-project/assets/59437511/443eb9db-d298-496d-942f-31f94f6e95ab)
+![screenshot_2](https://github.com/exosmium/final-project/assets/59437511/d984bd8b-3109-4c5f-bac6-9e4fa50e4cb0)
