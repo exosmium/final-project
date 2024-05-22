@@ -15,6 +15,7 @@ welcome = """
 
 My capabilities reminder: /help
 """
+value_bounds = "❌ Value must be a number between 0.01 and 1000000!"
 reminder = "🔧 Remind my capabilities: /help"
 currency_from = "💱 Choose currency to convert to."
 currency_to = "💱 Choose currency to convert from."
@@ -40,6 +41,13 @@ api_hash = ""
 token = ""
 
 userdata = {}
+def is_float(num):
+    try:
+        float(num)
+        return True
+    except ValueError:
+        return False
+
 def byte_to_string(data):
     data = str(data)
     return data.replace("'", "").replace("b", "")
@@ -47,7 +55,10 @@ def byte_to_string(data):
 def convert_currency(amount, currency_from, currency_to):
     request = ("https://www.frankfurter.app/latest?amount={}&from={}&to={}").format(amount, currency_from, currency_to)
     response = requests.get(request)
-    return response.json()["rates"].get(currency_to)
+    response = response.json()
+    if (not "rates" in response.keys()): # Checks if required data is in data
+        return None
+    return response["rates"].get(currency_to)
 
 def get_current_rates():
     request = "https://api.frankfurter.app/latest"
@@ -68,7 +79,7 @@ def add_conversion(username, currency_from, currency_to, amount, result):
     conversion_data["result"] = str(result)
     
     conversions = {}
-    if (username in list(userdata.keys())):
+    if (username in list(userdata.keys())): # Checks if current users username is in history
         conversions = userdata.get(username)["conversions"]
     conversions[str(timestamp)] = conversion_data
     conversions_interface = {}
@@ -76,7 +87,7 @@ def add_conversion(username, currency_from, currency_to, amount, result):
     userdata[username] = conversions_interface
 
 def load_userdata():
-    if (os.path.isfile("userdata.json")):
+    if (os.path.isfile("userdata.json")): # Checks if file exists
         with open("userdata.json", 'r') as json_file:
             global userdata
             userdata = dict(json.load(json_file))
@@ -86,12 +97,12 @@ def save_userdata():
         json.dump(userdata, json_file, indent=2, separators=(',',': '))
 
 def get_history(username):
-    if (userdata.get(username) == None):
+    if (userdata.get(username) == None): # Checks if userdata for a specific user is empty
         return history_empty
     result = ""
     result += history_header.format(username)
     conversions = userdata.get(username)["conversions"]
-    for conversion_timestamp in conversions.keys():
+    for conversion_timestamp in conversions.keys(): # For every time in all available data
         current_conversion = conversions.get(conversion_timestamp)
         result += history_format.format(current_conversion.get("amount"), current_conversion.get("from"), current_conversion.get("result"), current_conversion.get("to"))
     return result
@@ -105,12 +116,12 @@ bot = TelegramClient('xlconvertbot', api_id, api_hash).start(bot_token=token)
 currency_buttons = []
 currency_buttons.append([])
 main_buttons = [[Button.text(MenuButton.rates)], [Button.text(MenuButton.convert)],  [Button.text(MenuButton.history)]]
-for button in main_buttons:
+for button in main_buttons: # For every button
     button[0].resize = True
 row = 0
 status = 0
-for currency_id in range(len(currenices)):
-    if (currency_id % 6 == 0):
+for currency_id in range(len(currenices)): # For number in range currency count
+    if (currency_id % 6 == 0): # Checks if currency id can be devided by 6 without remainder
         currency_buttons.append([])
         row +=1
     currency_buttons[row].append(Button.inline(currenices[currency_id], currenices[currency_id]))
@@ -120,15 +131,19 @@ async def echo(event):
     sender = await event.get_sender()
     global status, chosen_currency_from, chosen_currency_to
 
-    if status == 3:
+    if status == 3: 
         value = event.text
         status = 0
-        if (chosen_currency_from == chosen_currency_to):
+        if (chosen_currency_from == chosen_currency_to): # Checks if currencies to and from are the same
             await event.respond(same_currency)
             return
-        result = convert_currency(int(value), chosen_currency_from, chosen_currency_to)
+        if not is_float(value) or float(value) > 10000000 or float(value) < 0.01: #Checks if entered value is within required bounds
+            status = 0
+            await event.respond(value_bounds)
+            return
+        result = convert_currency(float(value), chosen_currency_from, chosen_currency_to)
         response = result_message.format(value, chosen_currency_from, str(result), chosen_currency_to)
-        add_conversion(sender.username, chosen_currency_from, chosen_currency_from, int(value), result)
+        add_conversion(sender.username, chosen_currency_from, chosen_currency_from, float(value), result)
         save_userdata()
         await event.respond(response)
         return
@@ -148,7 +163,7 @@ async def echo(event):
             response = ""
             response += rate_header
             current_rates = get_current_rates()
-            for rate_name in current_rates.keys():
+            for rate_name in current_rates.keys(): # For every name of rate in available rates
                 response += rate_format.format(rate_name, current_rates.get(rate_name))
             await event.respond(response)
             return
@@ -179,5 +194,5 @@ async def echo(event):
 def main():
     bot.run_until_disconnected()
 
-if __name__ == '__main__':
+if __name__ == '__main__': # Check if programa strāda galvena faila
     main()
