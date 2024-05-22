@@ -8,7 +8,8 @@ par valūtas simboliem vai nezina, kā uzrakstīt tās nosaukumu?
 
 Programmai jābūt telegrammas botam ar 3 pogām: konvertēšana, maiņas kursi un vēsture. Jāizmanto telethon bibliotēka (lai izveidotu robotu) un api.frankfurter.app API (lai iegūtu aktuālo informāciju par valūtas kursiem). Pirmajā palaišanas reizē (komanda /start) programmai jānosūta lietotājam apsveikuma ziņojums, kurā tiks stāstīts par bota funkcijām un pieejamajām komandām. Jābūt arī komandai /help, lai gadījumā, ja lietotājs var atcerēties, kādas komandas botam ir, atkal saņemot apsveikuma ziņojumu. Tagad atsevišķi par katru funkciju.
 
-### Konvertēšana
+
++ Konvertēšana
 
 Noklikšķinot uz šīs pogas, lietotājam būtu jānorāda, lai ievadītu valūtu, uz kuru tiks veikta konvertēšana, izmantojot pogas ar visām pieejamajām konvertēšanas valūtām un uzvedinošu paziņojumu.
 Piemērs: "Uz kādu valūtu veiksiet konvertēšanu? <POGAS AR PIEEJAMAJĀM VALŪTĀM>...".
@@ -19,12 +20,12 @@ Piemērs: "Ievadiet konvertējamo summu...".
 Pēc tam programmai jāatgriež konvertēšanas rezultāts ar visām izmantotajām valūtām un rezultātu.
 Piemērs: "12 EUR ir 14,4 USD...".
 
-### Valūtas maiņas kursi
++ Valūtas maiņas kursi
 
 Noklikšķinot uz šīs pogas, lietotājam jāredz aktuālā informācija par visu konvertēšanai pieejamo valūtu maiņas kursiem. Katram kursam jābūt parādītam attiecībā pret euro.
 Piemērs: "Kurss: 1 USD = 1,1 EUR...".
 
-### Vēsture
++ Vēsture
 
 Noklikšķinot uz šīs pogas, lietotājam jāredz personīgā valūtas konvertāciju vēsture. 
 Piemērs: "USD...".
